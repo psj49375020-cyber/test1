@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>달력 플래너 배경화면 만들기</title>
+<meta name="description" content="원하는 달, 해상도, 테마로 달력 플래너 배경화면을 만들어 PNG로 저장하세요. 설치 없이 브라우저에서 동작합니다.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">📅</span>
+    <div>
+      <h1>달력 플래너 배경화면</h1>
+      <p>원하는 달·해상도·테마를 고르고 PNG로 저장해 바탕화면으로 쓰세요.</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button id="btn-reset" class="ghost" type="button">초기화</button>
+    <button id="btn-download" class="primary" type="button">PNG 다운로드</button>
+  </div>
+</header>
+
+<main class="app">
+  <!-- ============ 설정 패널 ============ -->
+  <aside class="panel" aria-label="설정">
+
+    <section class="group">
+      <h2>날짜</h2>
+      <div class="month-nav">
+        <button id="btn-prev" class="icon" type="button" aria-label="이전 달">‹</button>
+        <div class="month-now">
+          <select id="sel-year" aria-label="연도"></select>
+          <select id="sel-month" aria-label="월"></select>
+        </div>
+        <button id="btn-next" class="icon" type="button" aria-label="다음 달">›</button>
+      </div>
+      <button id="btn-today" class="ghost wide" type="button">이번 달로</button>
+      <label class="row">
+        <span>주 시작</span>
+        <select id="sel-weekstart">
+          <option value="0">일요일</option>
+          <option value="1">월요일</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="group">
+      <h2>해상도</h2>
+      <label class="row">
+        <span>프리셋</span>
+        <select id="sel-size"></select>
+      </label>
+      <div class="row two" id="custom-size" hidden>
+        <label><span>가로</span><input id="in-w" type="number" min="320" max="8000" step="1"></label>
+        <label><span>세로</span><input id="in-h" type="number" min="320" max="8000" step="1"></label>
+      </div>
+      <p class="hint">모르겠다면 <b>1920 × 1080</b> 을 쓰세요. 대부분의 모니터에서 잘 맞습니다.</p>
+    </section>
+
+    <section class="group">
+      <h2>디자인</h2>
+      <div class="swatches" id="swatches" role="radiogroup" aria-label="테마"></div>
+      <label class="row">
+        <span>배치</span>
+        <select id="sel-layout">
+          <option value="right">달력 오른쪽 (아이콘 자리 확보)</option>
+          <option value="left">달력 왼쪽</option>
+          <option value="center">가운데 (달력만)</option>
+        </select>
+      </label>
+      <label class="row">
+        <span>글꼴</span>
+        <select id="sel-font">
+          <option value="sans">고딕</option>
+          <option value="serif">명조</option>
+        </select>
+      </label>
+      <label class="row">
+        <span>언어</span>
+        <select id="sel-lang">
+          <option value="ko">한국어</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <div class="checks">
+        <label><input type="checkbox" id="ck-today"> 오늘 날짜 강조</label>
+        <label><input type="checkbox" id="ck-weekend"> 주말 색 구분</label>
+        <label><input type="checkbox" id="ck-adjacent"> 이전·다음 달 날짜 표시</label>
+        <label><input type="checkbox" id="ck-lines"> 주별 가로선</label>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2>할 일 · 메모</h2>
+      <div class="checks">
+        <label><input type="checkbox" id="ck-todo"> 할 일 목록</label>
+        <label><input type="checkbox" id="ck-memo"> 메모 줄</label>
+      </div>
+      <label class="row">
+        <span>제목</span>
+        <input id="in-todotitle" type="text" maxlength="20" placeholder="할 일">
+      </label>
+      <label class="stack">
+        <span>목록 (한 줄에 하나)</span>
+        <textarea id="ta-todos" rows="5" placeholder="예)&#10;운동 30분&#10;책 20쪽 읽기"></textarea>
+      </label>
+    </section>
+
+    <section class="group">
+      <h2>일정</h2>
+      <p class="hint">미리보기에서 날짜를 클릭하면 바로 입력할 수 있어요.</p>
+      <div class="row two">
+        <label><span>날짜</span><select id="sel-eventday"></select></label>
+        <label><span>내용</span><input id="in-eventtext" type="text" maxlength="24" placeholder="예) 팀 회의"></label>
+      </div>
+      <button id="btn-addevent" class="ghost wide" type="button">일정 저장</button>
+      <ul class="event-list" id="event-list"></ul>
+    </section>
+
+    <section class="group">
+      <h2>배경 이미지 (선택)</h2>
+      <input id="in-bg" type="file" accept="image/*">
+      <label class="row">
+        <span>배경 덮기</span>
+        <input id="in-dim" type="range" min="0" max="90" step="5">
+      </label>
+      <button id="btn-clearbg" class="ghost wide" type="button">배경 이미지 제거</button>
+    </section>
+
+    <section class="group">
+      <h2>서명 (선택)</h2>
+      <input id="in-footer" type="text" maxlength="40" placeholder="아래쪽에 넣을 문구">
+    </section>
+  </aside>
+
+  <!-- ============ 미리보기 ============ -->
+  <section class="preview-wrap">
+    <div class="preview-head">
+      <span id="preview-size" class="badge"></span>
+      <span class="hint">날짜를 클릭해 일정을 넣어보세요</span>
+    </div>
+    <div class="preview">
+      <canvas id="preview-canvas" aria-label="달력 미리보기"></canvas>
+    </div>
+
+    <details class="howto">
+      <summary>다운로드한 이미지를 바탕화면으로 설정하는 방법</summary>
+      <div class="howto-body">
+        <p><b>Windows 10 · 11</b> — 저장한 PNG 파일을 마우스 오른쪽 클릭 → <i>바탕 화면 배경으로 설정</i>.
+           또는 설정 → 개인 설정 → 배경 → 사진 찾아보기에서 선택하고, 맞춤 방법을 <i>채우기</i> 또는 <i>맞춤</i>으로 지정하세요.</p>
+        <p><b>macOS</b> — Finder에서 파일을 오른쪽 클릭(또는 Control-클릭) → <i>데스크탑 사진으로 설정</i>.
+           또는 시스템 설정 → 배경화면 → 사진 추가.</p>
+        <p><b>모바일</b> — 세로 해상도 프리셋으로 저장한 뒤 사진 앱에서 배경화면으로 지정하세요.</p>
+        <p class="hint">글자가 흐릿하면 모니터 해상도와 같은 크기로 다시 저장해 보세요.</p>
+      </div>
+    </details>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>모든 처리는 브라우저 안에서만 이루어집니다. 입력한 내용은 서버로 전송되지 않습니다.</span>
+</footer>
+
+<script src="assets/themes.js"></script>
+<script src="assets/renderer.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
